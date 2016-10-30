@@ -1,0 +1,10 @@
+---
+ssh_keys:
+  - /root/.ssh/{{ raspicam_name }}-id_rsa
+  - /root/.ssh/{{ raspicam_name }}-sfpg-id_rsa
+
+rsync_paths:
+  - "{{ hostvars[groups['webservers'][0]].sfpg_documentroot }}{{ raspicam_name }}/"
+  - "{{ hostvars[groups['webservers'][0]].sfpg_documentroot }}_sfpg_data/thumb/{{ raspicam_name}}/"
+
+

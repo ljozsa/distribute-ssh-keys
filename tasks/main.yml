@@ -1,0 +1,24 @@
+---
+- name: Ensure SSH keys don't already exist
+  stat:
+    path: "{{ item }}"
+  register: ssh_key
+  with_items: "{{ ssh_keys }}"
+
+- name: Generate SSH keys for passwordless SSH
+  shell: ssh-keygen -N '' -f {{ item.item }}
+  when: "{{ item.stat.exists }} == false"
+  with_items: "{{ ssh_key.results }}"
+
+- name: Get `id_rsa.pub`
+  shell: cat {{ item }}.pub
+  register: id_rsa_pub
+  with_items: "{{ ssh_keys }}"
+
+- name: Add authorized key to all hosts
+  authorized_key: 
+    user: webadmin
+    key: "{{ item[1].stdout }}"
+    key_options: 'command="$HOME/bin/rrsync {{ rsync_paths[item[0]] }}",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding'
+  delegate_to: "{{ groups['webservers'][0] }}"
+  with_indexed_items: "{{ id_rsa_pub.results }}"
